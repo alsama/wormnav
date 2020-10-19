@@ -4,7 +4,7 @@ using Data;
 using Trace;
 
 
-class DataView extends  WatchUi.View {
+class DataView extends WatchUi.View {
 
     hidden var width;
     hidden var height;

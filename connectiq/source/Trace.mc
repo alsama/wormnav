@@ -4,7 +4,7 @@ using Toybox.Position;
 
 module Trace {
 
-    const BUFFER_SIZE = 10;
+    var BUFFER_SIZE = 10;
 
     var x_array = new [BUFFER_SIZE];
     var y_array = new [BUFFER_SIZE];
@@ -116,19 +116,6 @@ module Trace {
                     session.addLap();
                 }
             }
-//            System.println("==========================");
-//            System.println("time=" + time);
-//            System.println("distance=" +distance);
-//            System.println("position=" + Position.getInfo().position.toGeoString(Position.GEO_DMS));
-//            System.println("setNewLap=" + setNewLap);
-//            System.println("isLap=" + isLap);
-//            System.println("lapCounter=" + lapCounter);
-//            System.println("lapTime=" +lapTime);
-//            System.println("lapDistance=" + lapDistance);
-//            System.println("lapInitTime=" +lapInitTime);
-//            System.println("lapInitDistance=" + lapInitDistance);
-//            System.println("lapTimeP=" +lapTimeP);
-//            System.println("lapDistanceP=" + lapDistanceP);
         } else {
             isAutoLapActive = false;
         }

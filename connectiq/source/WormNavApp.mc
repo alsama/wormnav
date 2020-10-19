@@ -17,7 +17,6 @@ var dataView;
 var lapView;
 var viewDelegate;
 var device = "generic";
-var track = null;
 var session = null;
 var activityType = ActivityRecording.SPORT_RUNNING;
 
@@ -26,6 +25,10 @@ var doForcedUpdate = false;
 var trackViewPeriod = 1;
 var dataViewPeriod = 1;
 var lapViewPeriod = 10;
+
+var track = null;
+var trackHeaders = [];
+var maxNoTracks = 4;
 
 class WormNavApp extends Application.AppBase {
     
@@ -47,19 +50,46 @@ class WormNavApp extends Application.AppBase {
 
         // start page is map
         mode=TRACK_MODE;
+        
         device = WatchUi.loadResource(Rez.Strings.device);
         System.println("Device: " + device);
-        var data= Application.getApp().getProperty("trackData");
-
-		// explicit enablement of heart rate sensor seems to be required to detect an external HRM
-        Sensor.setEnabledSensors([Sensor.SENSOR_HEARTRATE]);
-
-        if(data!=null) {
-            System.println("load data from property store");
-            track = new TrackModel(data);
-            System.println("Created track from property store!");
+        
+        //  get track headers
+        trackHeaders = Application.getApp().getProperty("trackHeaders");
+        
+        if(trackHeaders != null && trackHeaders.size()>0 ) {
+            System.println("Load track headers of size: " + trackHeaders.size());
+            var trackHeader = trackHeaders[trackHeaders.size()-1];
+            var data= Application.getApp().getProperty(getTrackId(trackHeader));
+            if(data!=null) {
+                System.println("Load data from property store with header:" + trackHeader);
+                track = new TrackModel(data);    
+            }
+            else {
+                // inconsistent state -> remove track header
+                trackHeaders.remove(trackHeader);
+                System.println("No track found for id:" + getTrackId(trackHeader));                        
+            }
         }
-
+        else if(trackHeaders == null) {
+            // handle legacy case that property does not exist
+            trackHeaders = [];       
+            var data= Application.getApp().getProperty("trackData");
+            if(data!=null) {
+                // create new track
+                System.println("Load data from property store (legacy)");
+                track = new TrackModel(data);                
+                System.println("Created track from property store (legacy!");
+                var trackHeader = Time.now().value() + "::" + track.name;
+                trackHeaders = [];
+                trackHeaders.add(trackHeader);
+                Application.getApp().setProperty("trackHeaders", trackHeaders);
+                Application.getApp().deleteProperty("trackData");
+                Application.getApp().setProperty(getTrackId(trackHeader),data);
+                System.println("Created track header with id:" + getTrackId(trackHeader));
+            }
+        }
+            
         if(Application.getApp().getProperty("northHeading")!=null) {
             Transform.northHeading=Application.getApp().getProperty("northHeading");
         }
@@ -99,7 +129,9 @@ class WormNavApp extends Application.AppBase {
         }
 
         Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
-
+		// explicit enablement of heart rate sensor seems to be required to detect an external HRM
+        Sensor.setEnabledSensors([Sensor.SENSOR_HEARTRATE]);
+        
         // timer is used for data fields and auto lap
         appTimer = new Timer.Timer();
         appTimer.start(method(:onTimer), 1000, true);
@@ -114,10 +146,10 @@ class WormNavApp extends Application.AppBase {
     function getInitialView() {
         trackView = new TrackView();
         if(track!= null) {
-             trackView.isNewTrack=true;
+            trackView.isNewTrack=true;
         }
         viewDelegate = new WormNavDelegate();
-        phoneMethod = method(:onPhone);
+        phoneMethod = method(:onMessage);
         if(Communications has :registerForPhoneAppMessages) {
             Communications.registerForPhoneAppMessages(phoneMethod);
         } else {
@@ -126,13 +158,20 @@ class WormNavApp extends Application.AppBase {
         return [trackView, viewDelegate];
     }
 
-    function onPhone(msg) {
-        System.println("onPhone(msg)");
-        messageReceived = true;
-        mode=TRACK_MODE;
-        track = new TrackModel(msg.data);
+    function onMessage(msg) {
+        System.println("onMessage(msg)");
         try {
-            Application.getApp().setProperty("trackData", msg.data);
+            messageReceived = true;
+            mode=TRACK_MODE;
+            track = new TrackModel(msg.data);
+            var trackHeader = (Time.now().value() + "::" + track.name);            
+            if(trackHeaders.size() == maxNoTracks) {
+                trackHeaders = trackHeaders.slice(1,null);    
+            }
+            trackHeaders.add(trackHeader);
+            System.println("trackHeaders: " + trackHeaders.toString());        
+            Application.getApp().setProperty("trackHeaders", trackHeaders);
+            Application.getApp().setProperty(getTrackId(trackHeader), msg.data);           
             $.trackView.isNewTrack=true;
             WatchUi.requestUpdate();
         }
@@ -144,12 +183,7 @@ class WormNavApp extends Application.AppBase {
     }
 
     function onPosition(info) {
-        //onTimer();
-        //lastPositionTime = System.getTimer();
-        Trace.newLatLonPosition(info.position.toRadians()[0].toFloat(),info.position.toRadians()[1].toFloat());
-        //if($.mode==TRACK_MODE) {
-        //    WatchUi.requestUpdate();
-        //}
+    	Trace.newLatLonPosition(info.position.toRadians()[0].toFloat(),info.position.toRadians()[1].toFloat());
     }
 
 	// handles screen updates
@@ -157,7 +191,6 @@ class WormNavApp extends Application.AppBase {
     	appTimerTicks += 1;
 
         if(lapViewCounter == 0 && Trace.isAutolap(false)) {
-            // auto lap detected
             lapViewCounter = 1;
         }
 
@@ -186,29 +219,38 @@ class WormNavApp extends Application.AppBase {
         }
         else if($.mode==TRACK_MODE)  {
         	if(trackViewCounter %  trackViewPeriod == 0 || doForcedUpdate) {
-        		WatchUi.requestUpdate();
-        		
+                WatchUi.requestUpdate();
         	}
         	if(doForcedUpdate) {
-        		doForcedUpdate	= false;
-        		trackViewCounter = 0;
+                doForcedUpdate	= false;
+                trackViewCounter = 0;
         	}
         	else {
-        		trackViewCounter += 1;	
+                trackViewCounter += 1;	
         	}
        	}
         else if($.mode==DATA_MODE) {
         	if(dataViewCounter %  dataViewPeriod == 0 || doForcedUpdate) {
-        		WatchUi.requestUpdate();
+                WatchUi.requestUpdate();
         	}
         	if(doForcedUpdate) {
-        		doForcedUpdate	= false;
-        		dataViewCounter = 0;
+                doForcedUpdate	= false;
+                dataViewCounter = 0;
         	}
         	else {
-        		dataViewCounter += 1;	
+                dataViewCounter += 1;	
         	}
-        }
-          
+        }         
     }
+    
+    function getTrackId(header) {
+        var i = header.find("::");
+        if (i != null) {
+            return header.substring(0,i);    
+        }
+        else {
+            return null;
+        }        
+    }
+    
 }

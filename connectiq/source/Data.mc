@@ -30,7 +30,7 @@ module Data {
 
     const AVG_CHAR = StringUtil.utf8ArrayToString([0xC3,0x98]);
 
-    var dataScreensDefault = [
+    const dataScreensDefault = [
                         [TIMER,DISTANCE,AVERAGE_PACE,CURRENT_HEART_RATE],
                         [LAP_TIMER,LAP_DISTANCE,LAP_PACE,LAP],
                         [SPEED,AVERAGE_SPEED,LAST_LAP_SPEED,LAP_DISTANCE]
@@ -135,164 +135,82 @@ module Data {
         return data!=null? (0.001*data+0.0001).format("%.2f") : "--";
     }
 
-    function pace() {
-        var data=Activity.getActivityInfo().currentSpeed;
-        return data!=null? Data.convertSpeedToPace(data) : null;
-    }
-
-    function speed() {
-        var data=Activity.getActivityInfo().currentSpeed;
-        return data!=null? (3.6*data).format("%.2f") : null;
-    }
-
-    function averagePace() {
-        var data=Activity.getActivityInfo().averageSpeed;
-        return data!=null?  Data.convertSpeedToPace(data) : null;
-    }
-
-    function averageSpeed() {
-        var data=Activity.getActivityInfo().averageSpeed;
-        return data!=null?  (3.6*data).format("%.2f") : null;
-    }
-
-    function currentHeartRate() {
-        var data= Activity.getActivityInfo().currentHeartRate;
-        //var data = Sensor.Info.heartRate;
-        return data!=null?  data : null;
-    }
-
-    function averageHeartRate() {
-        var data= Activity.getActivityInfo().averageHeartRate;
-        return data!=null?  data : null;
-    }
-
-    function lapTimer() {
-        if(Trace.autolapDistance > 0) {
-            return Data.msToTime(Trace.lapTime.toLong());
-        }
-        return null;
-    }
-
-    function lapDistance() {
-        if(Trace.autolapDistance > 0) {
-            return (0.001*Data.Trace.lapDistance).format("%.2f") ;
-        }
-        return null;
-    }
-
-    function lapPace() {
-        if(Trace.autolapDistance > 0 && Trace.lapTime > 0) {
-            return Data.convertSpeedToPace(1000*Trace.lapDistance/Trace.lapTime);
-        }
-        return null;
-    }
-
-    function lapSpeed() {
-        if(Trace.autolapDistance > 0  && Trace.lapTime > 0) {
-            return (3600*Trace.lapDistance/Trace.lapTime).format("%.2f");
-        }
-        return null;
-    }
-
-    function lastLapPace() {
-        if(Trace.autolapDistance > 0 && Trace.lapTimeP > 0) {
-            return Data.convertSpeedToPace(1000*Trace.lapDistanceP/Trace.lapTimeP);
-        }
-        return null;
-    }
-
-    function lastLapSpeed() {
-        if(Trace.autolapDistance > 0 && Trace.lapTimeP > 0) {
-            return (3600*Trace.lapDistanceP/Trace.lapTimeP).format("%.2f");
-        }
-        return null;
-    }
-
-    function lap() {
-        if(Trace.autolapDistance > 0) {
-            return Trace.lapCounter;
-        }
-        return null;
-    }
-
-    function altitude() {
-       var data=Activity.getActivityInfo().altitude;
-       return data!=null? data.format("%.0f") : null;
-    }
-
-    function clockTime() {
-        var data = Sys.getClockTime();
-
-        return data!=null?
-            data.hour.format("%02d") + ":" +
-            data.min.format("%02d") + ":" +
-            data.sec.format("%02d"): null;
-    }
-
-    function battery() {
-        var data = Sys.getSystemStats().battery;
-        return data!=null? data.format("%.0f") : null;
-    }
-
-
-
-
     function getDataFieldLabelValue(i) {
         var dataValue = null;
         switch(i) {
             case TIMER:
-                dataValue = timer();
-                break;
+            	dataValue = timer();
+                break;           
             case DISTANCE:
-                dataValue = distance();
+            	dataValue = distance();
                 break;
             case PACE:
-                dataValue = pace();
+            	dataValue = Activity.getActivityInfo().currentSpeed;
+        		dataValue = dataValue != null? Data.convertSpeedToPace(dataValue) : null;
                 break;
             case SPEED:
-                dataValue = speed();
+            	dataValue = Activity.getActivityInfo().currentSpeed;
+        		dataValue = dataValue != null? (3.6*dataValue).format("%.2f") : null;
                 break;
             case AVERAGE_PACE:
-                dataValue = averagePace();
+                dataValue = Activity.getActivityInfo().averageSpeed;
+        		dataValue = dataValue != null?  Data.convertSpeedToPace(dataValue) : null;	
                 break;
             case AVERAGE_SPEED:
-                dataValue = averageSpeed();
-                break;
+                dataValue = Activity.getActivityInfo().averageSpeed;
+        		dataValue = dataValue != null?  (3.6*dataValue).format("%.2f") : null;
+            	break;
             case CURRENT_HEART_RATE:
-                dataValue = currentHeartRate();
+                dataValue = Activity.getActivityInfo().currentHeartRate;     
                 break;
             case AVERAGE_HEART_RATE:
-                dataValue = averageHeartRate();
+                dataValue = Activity.getActivityInfo().averageHeartRate;
                 break;
             case LAP_TIMER:
-                dataValue = lapTimer();
+            	if(Trace.autolapDistance > 0) {
+            		dataValue = Data.msToTime(Trace.lapTime.toLong());
+        		}
                 break;
             case LAP_DISTANCE:
-                dataValue = lapDistance();
+                if(Trace.autolapDistance > 0) {
+            		dataValue = (0.001*Data.Trace.lapDistance).format("%.2f");
+        		}
                 break;
             case LAP_PACE:
-                dataValue = lapPace();
+                if(Trace.autolapDistance > 0 && Trace.lapTime > 0) {
+            		dataValue = Data.convertSpeedToPace(1000*Trace.lapDistance/Trace.lapTime);
+        		}
                 break;
             case LAP_SPEED:
-                dataValue = lapSpeed();
+                if(Trace.autolapDistance > 0  && Trace.lapTime > 0) {
+            		dataValue = (3600.0*Trace.lapDistance/Trace.lapTime).format("%.2f");
+        		}
                 break;
             case LAST_LAP_PACE:
-                dataValue = lastLapPace();
+                if(Trace.autolapDistance > 0 && Trace.lapTimeP > 0) {
+            		dataValue = Data.convertSpeedToPace(1000*Trace.lapDistanceP/Trace.lapTimeP);
+        		}
                 break;
             case LAST_LAP_SPEED:
-                dataValue = lastLapSpeed();
+                if(Trace.autolapDistance > 0 && Trace.lapTimeP > 0) {
+            		dataValue = (3600*Trace.lapDistanceP/Trace.lapTimeP).format("%.2f");
+        		}
                 break;
             case LAP:
-                dataValue = lap();
+                if(Trace.autolapDistance > 0) {
+            		dataValue = Trace.lapCounter;
+        		}
                 break;
             case ALTITUDE:
-                dataValue = altitude();
+                var dataValue = Activity.getActivityInfo().altitude;
+       			dataValue = dataValue!=null? data.format("%.0f") : null;
                 break;
             case CLOCK_TIME:
-                dataValue = clockTime();
+                dataValue = Sys.getClockTime();
+        		dataValue = dataValue != null? data.hour.format("%02d") + ":" + data.min.format("%02d") + ":" + data.sec.format("%02d"): null;
                 break;
             case BATTERY:
-                dataValue = battery();
+            	dataValue = Sys.getSystemStats().battery;
                 break;
             default:
                 break;
@@ -352,87 +270,6 @@ module Data {
 
         //return Lang.format("$1$:$2$$3$", [result_min, result_sec.format("%02d"), result_per]);
         return Lang.format("$1$:$2$", [result_min, result_sec.format("%02d")]);
-    }
-
-     function convertDistance(metres) {
-        var result;
-
-        if( metres == null ) {
-            result = 0;
-        } else {
-            var settings = Sys.getDeviceSettings();
-            if( settings.distanceUnits == Sys.UNIT_METRIC ) {
-                result = metres / 1000.0;
-            } else {
-                result = metres / 1609.34;
-            }
-
-        }
-
-        return Lang.format("$1$", [result.format("%.2f")]);
-    }
-
-    function convertToMeters(distance){
-        var meters;
-
-        if (distance == null){
-            meters = 0;
-        }
-        else{
-            var settings = Sys.getDeviceSettings();
-            if( settings.distanceUnits == Sys.UNIT_METRIC ) {
-                meters = distance * 1000.0;
-            } else {
-                meters = distance * 1609.34;
-            }
-        }
-        return meters;
-    }
-
-    // Print pace as min:sec
-    function printPace(pace) {
-        var paceStr;
-
-        if( pace != null && ( pace instanceof Toybox.Lang.Number || pace instanceof Toybox.Lang.Float ) ) {
-            paceStr=pace.format("%.2f");
-            return paceStr.substring(0,paceStr.find(".")) + ":" + paceStr.substring(paceStr.find(".")+1,paceStr.find(".")+3);
-        } else {
-            return "--";
-        }
-    }
-
-     // Print pace as min:sec
-    function printTime(timeInMillies) {
-       var seconds = Math.floor((timeInMillies / 1000) % 60) ;
-       var minutes = Math.floor(((timeInMillies / (1000*60)) % 60));
-       var hours = Math.floor(((timeInMillies / (1000*60*60)) % 24));
-       return Lang.format("$1$:$2$:$3$", [hours, minutes.format("%02d"), seconds.format("%02d")]);
-    }
-
-    // Convert from speed to pace (from m/s to min/km)
-    function speedToPace(speed) {
-        var seconds;
-
-        if( speed==0.0 ) {
-            return 0.0;
-        }
-
-        // Change from speed (m/s) to pace (min/km or min/mi)
-        // Check device settings to get unit settings
-        if( System.getDeviceSettings().paceUnits==System.UNIT_STATUTE ) {
-            speed=1/speed*1609.344/60;
-        } else {
-            speed=1/speed*1000/60;
-        }
-
-        // Change decimals from base 100 to base 60 (a pace of 5.5 should be 5 minutes and 30 seconds)
-        seconds=(speed-speed.toNumber())*60/100;
-        if( seconds >= 0.595 ) {
-            seconds=0;
-            speed++;
-        }
-
-        return speed.toNumber()+seconds;
     }
 
     function max(x,y) {

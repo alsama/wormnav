@@ -1,5 +1,5 @@
 class TrackModel {
-
+	
     var lat_center;
     var lon_center;
     var diagonal;
@@ -12,8 +12,7 @@ class TrackModel {
     hidden var boundingBox;
 
     // lat lon values must be in radians!
-    function initialize(msg) {
-        data = msg;
+    function initialize(data) {
         boundingBox = data[0];
         lat_center = boundingBox[4];
         lon_center = boundingBox[5];
@@ -24,8 +23,7 @@ class TrackModel {
         xyArray = data[4];
     }
 
-    function clean() {
-        data=null;
+    function clean() {      
         boundingBox=null;
         lat_center =null;
         lon_center = null;
@@ -36,5 +34,4 @@ class TrackModel {
         xyArray=null;
         return null;
     }
-
 }

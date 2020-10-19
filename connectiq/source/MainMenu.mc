@@ -330,17 +330,16 @@ class PeriodPickerDelegate extends WatchUi.PickerDelegate {
     	switch ( mKey ) {
     		case "trackViewPeriod":
     			$.trackViewPeriod = values[0];
-    			Application.getApp().setProperty("trackViewPeriod", $.trackViewPeriod);
     			break;
     		case "dataViewPeriod":
     			$.dataViewPeriod = values[0];
-    			Application.getApp().setProperty("dataViewPeriod", $.dataViewPeriod);
     			break;
     		case "lapViewPeriod":
     			$.lapViewPeriod = values[0];
     			Application.getApp().setProperty("lapViewPeriod", $.lapViewPeriod);
     			break;
   		}
+  		Application.getApp().setProperty(mKey, values[0]);
         WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
     }
 }

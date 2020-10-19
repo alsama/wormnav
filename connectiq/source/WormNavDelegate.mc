@@ -147,8 +147,8 @@ class WormNavDelegate extends WatchUi.BehaviorDelegate {
 
     function onMenu() {
         // System.println("onMenu()");
-           var menu = new Rez.Menus.MainMenu();
-           menu.setTitle("Main Menu");
+        var menu = new Rez.Menus.MainMenu();
+	    menu.setTitle("Main Menu");
         WatchUi.pushView(menu, new MainMenuDelegate(), WatchUi.SLIDE_IMMEDIATE);
         return true;
     }
@@ -159,19 +159,15 @@ class WormNavDelegate extends WatchUi.BehaviorDelegate {
         // System.println("onSelect()");
         if( Toybox has :ActivityRecording ) {
             if( ( $.session == null ) || ( $.session.isRecording() == false ) ) {
-                // System.println("start/resume session");
                 if($.session==null) {
                     $.session = ActivityRecording.createSession({:name=>"WormNavActivity", :sport=>$.activityType});
                 }
                 $.session.start();
                 $.doForcedUpdate = true;
-                //WatchUi.requestUpdate();
             }
             else if( ( $.session != null ) && $.session.isRecording() ) {
-                // System.println("stop session");
                 $.session.stop();
                 $.doForcedUpdate = true;
-                //WatchUi.requestUpdate();
             }
         }
 
